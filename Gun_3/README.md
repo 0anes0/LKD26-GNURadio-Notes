@@ -1,102 +1,49 @@
-# 3. Gün: Analog Modülasyon Teorisi ve Spektral Analiz
 
-## Giriş: Neden Modülasyon?
-Haberleşme sistemlerinde bilgi sinyali (ses, veri) doğrudan iletilemez. Bunun temel fiziksel ve mühendislik sebepleri vardır:
+## 1. CW (Continuous Wave - Sürekli Dalga)
 
-1.  **Anten Boyutu:** $\lambda = c/f$ gereği, 3 kHz'lik ses sinyali için 100 km uzunluğunda anten gerekir. Frekans yükseltilerek ($f_c$) anten boyutu makul seviyelere (cm/m) indirilir.
-2.  **Multiplexing (Çoklama):** Aynı ortamda (hava) farklı frekans bantları kullanılarak birden fazla kanalın çakışmadan iletilmesi (FDM).
+En temel haberleşme biçimidir.
 
----
+* **Tanım:** Herhangi bir modülasyon (bilgi) içermeyen saf sinüs dalgasıdır. Genliği ve frekansı sabittir.
+* **Kullanım Alanı:** Genellikle Mors alfabesi (Telgraf) ile iletişimde kullanılır. Bilgi, taşıyıcının açılıp kapatılmasıyla (On-Off Keying) aktarılır.
+* **Spektrum Görünümü:** FFT ekranında sadece taşıyıcı frekansında (örneğin 100 MHz) tek bir dik çubuk (pik) görülür. Bant genişliği teorik olarak sıfıra yakındır.
 
-## 1. Genlik Modülasyonu (Amplitude Modulation - AM)
+## 2. AM (Amplitude Modulation - Genlik Modülasyonu)
 
-AM, en ilkel ancak teoriyi anlamak için en kritik modülasyon türüdür. Bilgi sinyali $m(t)$, taşıyıcı sinyalin **genliğini** değiştirir.
+Bilgi sinyali, taşıyıcı sinyalin genliğini değiştirir.
 
-### Matematiksel Model ve İspat
-Taşıyıcı sinyal ($c(t)$) ve mesaj sinyali ($m(t)$) şu şekilde tanımlansın:
-$$c(t) = A_c \cos(2\pi f_c t)$$
-$$m(t) = A_m \cos(2\pi f_m t)$$
+* **Yapı:** Bir taşıyıcı ve iki yan banttan oluşur.
+    * **Taşıyıcı (Carrier):** Bilgi taşımaz, sadece sinyali taşır. Gücün büyük kısmı buradadır.
+    * **Yan Bantlar:** Bilgi bu bantlarda bulunur.
+* **Bant Genişliği:** Bilgi sinyalinin frekansının iki katıdır (2 x fm).
+* **Dezavantaj:** Güç verimliliği düşüktür çünkü enerjinin çoğu bilgi taşımayan taşıyıcı frekansına harcanır. Ayrıca atmosferik gürültüden (genlik bozulmalarından) çok etkilenir.
 
-AM sinyali $s_{AM}(t)$ şu genel formülle ifade edilir:
-$$s_{AM}(t) = [A_c + m(t)] \cos(2\pi f_c t)$$
+## 3. LSB ve USB (Tek Yan Bant - SSB)
 
-Parantez içine $A_c$ parantezine alıp **Modülasyon İndeksi ($\mu = A_m / A_c$)** tanımını uygularsak:
-$$s_{AM}(t) = A_c [1 + \mu \cos(2\pi f_m t)] \cos(2\pi f_c t)$$
+AM modülasyonunda aynı bilgi hem sağda hem solda simetrik olarak bulunur. Bant genişliği ve güçten tasarruf etmek için taşıyıcı bastırılır ve yan bantlardan sadece biri gönderilir. Buna SSB (Single Side Band) denir.
 
-### Spektral Analiz (Frekans Alanına Geçiş)
-Trigonometrik dönüşüm formülü olan $\cos(A)\cos(B) = \frac{1}{2}[\cos(A-B) + \cos(A+B)]$ kullanılarak frekans bileşenleri ispatlanır:
+### LSB (Lower Side Band - Alt Yan Bant)
+* **Tanım:** Taşıyıcı frekansının solunda (altında) kalan frekans bandıdır.
+* **Matematiksel Karşılık:** fc - fm
+* **Kullanım:** Genellikle 10 MHz altındaki frekanslarda (7 MHz amatör bandı gibi) tercih edilir.
 
-$$s_{AM}(t) = A_c \cos(2\pi f_c t) + \frac{A_c \mu}{2} \cos(2\pi (f_c - f_m) t) + \frac{A_c \mu}{2} \cos(2\pi (f_c + f_m) t)$$
+### USB (Upper Side Band - Üst Yan Bant)
+* **Tanım:** Taşıyıcı frekansının sağında (üstünde) kalan frekans bandıdır.
+* **Matematiksel Karşılık:** fc + fm
+* **Kullanım:** Genellikle 10 MHz üzerindeki frekanslarda (14 MHz, 20 MHz gibi) tercih edilir.
 
-Bu denklem bize spektrumda üç bileşen olduğunu kanıtlar:
-1.  **Taşıyıcı (Carrier):** $f_c$ frekansında. (Bilgi taşımaz, güç harcar).
-2.  **Alt Yan Bant (LSB):** $f_c - f_m$ frekansında.
-3.  **Üst Yan Bant (USB):** $f_c + f_m$ frekansında.
+**Not:** SSB dinlerken alıcı frekansının tam olarak tutturulması gerekir. Birkaç Hz'lik kayma bile sesin "Donald Duck" (ince) veya kalın çıkmasına neden olur.
 
-### Güç Verimliliği Analizi (Power Efficiency)
-Mühendislikte her şey verimdir. AM neden verimsizdir?
-Toplam güç, taşıyıcı ve yan bantların güçleri toplamıdır ($P \propto V^2/2$):
+## 4. FM (Frequency Modulation - Frekans Modülasyonu)
 
-$$P_{Total} = P_{Carrier} + P_{USB} + P_{LSB} = \frac{A_c^2}{2} + \frac{(A_c \mu/2)^2}{2} + \frac{(A_c \mu/2)^2}{2}$$
-$$P_{Total} = \frac{A_c^2}{2} \left( 1 + \frac{\mu^2}{2} \right)$$
+Bilgi sinyali, taşıyıcı sinyalin frekansını değiştirir. Genlik sabit kalır.
 
-Verimlilik ($\eta$), faydalı gücün (Yan bantlar) toplam güce oranıdır:
-$$\eta = \frac{P_{Sidebands}}{P_{Total}} = \frac{\mu^2 / 2}{1 + \mu^2 / 2} = \frac{\mu^2}{2 + \mu^2}$$
-
-* **En iyi senaryoda ($\mu = 1$):** $\eta = 1/3 \approx \%33.3$.
-* **Sonuç:** AM vericisinin harcadığı gücün **%66'sı çöp** (taşıyıcıya gider). Sadece %33'ü bilgi taşır. Bu yüzden DSB-SC ve SSB geliştirilmiştir.
+* **Çalışma Mantığı:** Ses sinyali yükseldiğinde frekans artar, düştüğünde frekans azalır.
+* **Gürültü Bağışıklığı:** Atmosferik gürültü ve parazitler genellikle sinyalin genliğini bozar. FM alıcılarında bulunan "Limiter" devresi genliği tıraşladığı için FM, gürültüye karşı AM'den çok daha dirençlidir.
+* **Bant Genişliği:** AM'e göre çok daha geniştir (Carson Kuralı ile hesaplanır). Bu yüzden ses kalitesi daha yüksektir.
 
 ---
 
-## 2. Çift Yan Bant - Taşıyıcısı Bastırılmış (DSB-SC)
-
-Güç israfını önlemek için taşıyıcı ($f_c$) gönderilmez. Sadece $m(t) \times c(t)$ işlemi yapılır.
-
-$$s_{DSB-SC}(t) = m(t) \cos(2\pi f_c t)$$
-
-* **Avantaj:** Güç verimliliği %100'dür. Tüm enerji bilgiye harcanır.
-* **Dezavantaj:** Alıcıda (Receiver) "Coherent Detection" gerekir. Yani yerel osilatörün frekansı ve **fazı**, vericiyle birebir aynı olmalıdır. Faz kayarsa ($\phi$), sinyal sönümlenir: $V_{out} \propto \cos(\phi)$.
-
----
-
-## 3. Tek Yan Bant (SSB - Single Sideband)
-
-DSB-SC'de aynı bilgi hem LSB hem USB'de vardır. Bant genişliğini yarıya düşürmek için biri filtrelenir.
-Matematiksel olarak bu, **Hilbert Dönüşümü** ($\hat{m}(t)$) ile ifade edilir:
-
-$$s_{SSB}(t) = \frac{A_c}{2} [m(t) \cos(2\pi f_c t) \mp \hat{m}(t) \sin(2\pi f_c t)]$$
-
-* **(-):** Üst Yan Bant (USB)
-* **(+):** Alt Yan Bant (LSB)
-
-> **GNU Radio Uygulaması:** `Complex to Real` bloğu veya `Weaver Modulator` yapısı ile SSB üretilir.
-
----
-
-## 4. Frekans Modülasyonu (Frequency Modulation - FM)
-
-Mesaj sinyalinin genliği, taşıyıcının **frekansını** değiştirir. Gürültü bağışıklığı (Noise Immunity) AM'den çok daha yüksektir çünkü atmosferik gürültü genliği bozar, frekansı kolay kolay bozamaz.
-
-### Matematiksel Model
-Anlık frekans $f_i(t) = f_c + k_f m(t)$ şeklindedir. Faz, frekansın integrali olduğundan:
-
-$$s_{FM}(t) = A_c \cos\left( 2\pi f_c t + 2\pi k_f \int_{-\infty}^{t} m(\tau) d\tau \right)$$
-
-### Bant Genişliği (Carson Kuralı)
-FM teorik olarak sonsuz bant genişliğine sahiptir (Bessel fonksiyonları gereği). Ancak enerjinin %98'inin bulunduğu bant genişliği **Carson Kuralı** ile hesaplanır:
-
-$$BW \approx 2 (\Delta f + f_m)$$
-
-* $\Delta f$: Frekans sapması (Deviation).
-* $f_m$: Mesaj sinyalinin maksimum frekansı.
-
----
-
-## GNU Radio Blokları ve İpuçları
-
-1.  **Signal Source:** Hem mesaj ($f_m$) hem taşıyıcı ($f_c$) üretmek için temel blok.
-2.  **Multiply:** İki sinyali çarpmak (Mikserlemek). DSB-SC için temel işlemdir.
-3.  **Add:** Taşıyıcı ekleyerek AM elde etmek için kullanılır.
-4.  **Low Pass Filter (Demodülasyon için):** Zarf dedektörü (Envelope Detector) çıkışındaki yüksek frekanslı bileşenleri temizleyip orijinal $m(t)$'yi almak için zorunludur.
-
-> **Hata Ayıklama:** Eğer AM demodülasyonda ses bozuk geliyorsa, `Sample Rate` uyumsuzluğu veya filtre kesim frekansı (Cutoff) yanlıştır. Nyquist'i asla unutma.
+### Laboratuvar Notu: GNU Radio Gözlemleri
+Ders sırasında yapılan akış diyagramlarında şu farklar gözlemlendi:
+1.  **AM:** FFT ekranında ortada sabit bir taşıyıcı ve yanında oynayan iki küçük çubuk görüldü.
+2.  **SSB (LSB/USB):** Ortadaki taşıyıcı yok oldu ve sadece tek bir tarafta hareketlilik görüldü.

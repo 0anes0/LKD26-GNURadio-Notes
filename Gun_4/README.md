@@ -1,75 +1,55 @@
+##  Günün Özeti
+Bu laboratuvar gününde iki farklı dünyaya odaklandık:
+1.  **Öğleden Önce:** Mevcut SDR ağlarını kullanmak OpenWebRX ve gerçek dünya sinyallerini (ADS-B) yakalamak.
+2.  **Öğleden Sonra:** Modern haberleşmenin temeli olan sayısal modülasyon tekniklerini (QPSK) analiz etmek.
 
-##  Giriş
 ---
 
-## 📝 Teorik Temeller
+#  Bölüm 1: Remote SDR ve Havacılık (Sabah Oturumu)
 
-### 1. Neden Sayısal Modülasyon?
-Analog sinyaller gürültüye karşı dayanıksızdır. Sayısal haberleşmede ise bilgiyi "Sembollere" kodlarız.
-* **Bit:** 0 veya 1.
-* **Sembol:** Hat üzerinden gönderilen dalga formu.
+Kendi donanımımız sınırlı olduğunda veya anten kuramadığımızda, internet üzerinden başka SDR'lara erişebiliriz.
+
+### 1. Web Tabanlı SDR Sistemleri
+* **WebSDR:** Tarayıcı üzerinden (HTML5) dünyanın farklı yerlerindeki amatör telsiz istasyonlarını dinlememizi sağlar. Genelde HF (Kısa Dalga) bantlarında popülerdir.
+* **OpenWebRX:** Daha modern, Python tabanlı ve modüler bir yapıdır. Sadece sesi değil, üzerindeki dijital modları (DMR, YSF, FT8) da tarayıcı içinde çözebilir.
+    * *Kullanım Amacı:* Kendi yaptığımız vericinin (TX) sinyalinin dünyanın öbür ucuna ulaşıp ulaşmadığını (Propagasyon testi) kontrol etmek.
+
+### 2. ADS-B ile Uçak Takibi (1090 MHz)
+**ADS-B (Automatic Dependent Surveillance–Broadcast)**, uçakların kimlik, konum, hız ve irtifa bilgilerini yayınladığı sistemdir.
+
+**Kullanılan Donanım ve Yazılım:**
+* **Donanım:** RTL-SDR (RTL2832U)
+* **Yazılım:** SDRangel (Gelişmiş SDR alıcı/verici yazılımı)
+* **Anten:** 1090 MHz uyumlu dikey anten.
+
+**Deney Sonuçları:**
+* RTL-SDR ile 1090 MHz frekansı dinlendi.
+* **SDRangel** üzerindeki ADS-B demodülatörü aktif edildi.
+* Harita eklentisi kullanılarak, laboratuvarın üzerinden geçen uçaklar gerçek zamanlı olarak haritada tespit edildi.
+
+---
+
+#  Bölüm 2: Sayısal Haberleşme ve QPSK (Öğleden Sonra)
+
+Analog dünyadan çıkıp bitlerin dünyasına (0 ve 1) geçiş yaptık. Odak noktamız **QPSK** modülasyonuydu.
+
+### 1. Neden Sayısal?
+Analog sinyal bozulursa "cızırtı" duyarsın, anlaşılır. Sayısal sinyal bozulursa veri tamamen kaybolur. Bu yüzden **Eye Diagram (Göz Diyagramı)** ve **Constellation (Takımyıldız)** gibi analiz araçlarına muhtacız.
 
 ### 2. QPSK (Quadrature Phase Shift Keying)
-Hocanın üzerinde durduğu temel modülasyon tipi.
-* **Mantık:** Taşıyıcı sinyalin **fazını** 4 farklı açıya (45°, 135°, 225°, 315°) kaydırarak bilgi taşırız.
-* **Verimlilik:** Her sembol **2 bit** taşır (00, 01, 10, 11). BPSK'ya göre bant genişliğini değiştirmeden hızı 2 katına çıkarır.
+* **Mantık:** Taşıyıcının fazını 4 farklı açıya (45°, 135°, 225°, 315°) kaydırarak bilgi taşır.
+* **Verim:** Her sembol **2 bit** taşır (00, 01, 10, 11).
 
-### 3. Darbe Şekillendirme (Pulse Shaping)
-Kare dalga (0 ve 1'ler) frekans spektrumunda sonsuz bant genişliği kaplar (Sinc fonksiyonu). Yan kanallara taşmayı önlemek için sinyali "yumuşatmamız" gerekir.
-* **Kullanılan Filtre:** Root Raised Cosine (RRC).
-* **Amaç:** Bant genişliğini sınırlamak ve Semboller Arası Girişimi engellemek.
+### 3. Uygulama Analizi: `QPSKDemo.grc`
+Derste incelediğimiz GNU Radio akış diyagramının detayları:
 
----
+* **Verici (TX):**
+    * `Random Source`: Rastgele bit üretir.
+    * `RRC Filter (Root Raised Cosine)`: **Darbe Şekillendirme** yapar. Kare dalgayı yumuşatarak bant genişliğini sınırlar ve Semboller Arası Girişimi (ISI) önler.
 
-## Uygulama Analizi: `QPSKDemo.grc`
+* **Kanal (Simülasyon):**
+    * `Noise Voltage`: Ortama **AWGN (Beyaz Gürültü)** ekler. Artırıldığında Constellation noktaları dağılır.
+    * `Freq Offset`: Alıcı-verici frekans uyumsuzluğunu simüle eder. Değer girildiğinde noktalar **dönmeye başlar**.
 
-### 1. Veri Kaynağı (TX - Verici)
-* **Random Source:** Rastgele bitler üretir. (Bizim verimiz bu).
-* **QPSK Mod:** Bitleri sembollere çevirir (Gri Kodlaması kullanılır).
-* **RRC Filter (Interpolation):** Sinyali yumuşatır ve örnekleme hızını (Samples per Symbol - SPS) ayarlar. Dosyada `sps=4` olarak belirlenmiş.
-
-### 2. Kanal Simülasyonu (Ortamı Bozma)
-Gerçek dünya şartlarını simüle etmek için sinyali bilerek bozduğumuz blok:
-* **Channel Model:**
-    * **Noise Voltage:** Ortama "Beyaz Gürültü" (AWGN) ekler. Değer arttıkça noktalar dağılır.
-    * **Frequency Offset:** Verici ve alıcı arasındaki frekans uyumsuzluğunu simüle eder. Değer 0'dan farklıysa takımyıldız **dönmeye başlar**.
-
-### 3. Görüntüleme ve Analiz (RX - Alıcı)
-* **Constellation Sink (Takımyıldız Diyagramı):**
-    * I ve Q bileşenlerini X-Y düzleminde gösterir.
-    * **İdeal Durum:** 4 net nokta.
-    * **Gürültülü Durum:** 4 tane "bulut".
-    * **Faz Kayması:** Noktaların kendi etrafında dönmesi.
-
-* **Eye Diagram (Göz Diyagramı):**
-    * Sinyallerin üst üste binmiş halidir.
-    * **Göz Açıklığı:** Göz ne kadar açıksa, sinyal o kadar temizdir. Göz kapanırsa **ISI (Girişim)** var demektir, veri okunamaz.
-
----
-
-## 🧪 Laboratuvar Deney Gözlemleri
-
-Akış diyagramı çalışırken `QT GUI` üzerindeki "Slider"lar ile şu testleri yaptık:
-
-1.  **Gürültü Testi:**
-    * `Noise Voltage` artırıldığında Constellation noktaları genişleyip birbirine karışmaya başladı.
-    * **Sonuç:** SNR düştükçe bit hatası (BER) artar.
-
-2.  **Frekans Kayması Testi:**
-    * `Freq Offset` değeri çok az artırıldığında (örn: 0.001) noktalar yavaşça dönmeye başladı.
-    * **Mühendislik Çözümü:** Alıcıda bunu durdurmak için "Costas Loop" gibi senkronizasyon blokları gerekir (İleriki derslerin konusu).
-
-3.  **Zamanlama Hatası:**
-    * `Time Offset` ile oynadığımızda Göz Diyagramındaki "göz" kapandı.
-    * **Sonuç:** Doğru anda örnekleme yapılmazsa semboller yanlış okunur.
-
----
-
-## ⚠️ Kritik Kavramlar Sözlüğü
-
-| Terim | Açıklama |
-| :--- | :--- |
-| **ISI (Inter-Symbol Interference)** | Bir sembolün enerjisinin diğerine taşması. |
-| **Baud Rate** | Saniyedeki sembol sayısı. |
-| **RRC (Root Raised Cosine)** | İdeal bant genişliği filtresi. ($\alpha$ parametresi keskinliği belirler). |
-| **AWGN** | Additive White Gaussian Noise (Standart arka plan gürültüsü). |
+* **Alıcı (RX - Görüntüleme):**
+    * **Constellation Sink:** I/Q verisini X-Y düzleminde çizer. İdealde 4 net nokta görmeliyiz.
